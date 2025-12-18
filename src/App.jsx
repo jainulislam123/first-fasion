@@ -29,7 +29,46 @@ import {
   Instagram,
   Maximize2,
   Plus,
+  Database,
+  Loader2,
 } from "lucide-react";
+
+// --- FIREBASE IMPORTS ---
+import { initializeApp } from "firebase/app";
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+} from "firebase/firestore";
+
+// --- FIREBASE CONFIGURATION ---
+// IMPORTANT: Replace these values with your actual Firebase config keys
+const firebaseConfig = {
+  apiKey: "AIzaSyDYHdEOm7k4xV9at8becrZghGlYwAPJIHg",
+  authDomain: "firstfashion-b634e.firebaseapp.com",
+  projectId: "firstfashion-b634e",
+  storageBucket: "firstfashion-b634e.firebasestorage.app",
+  messagingSenderId: "541600173004",
+  appId: "1:541600173004:web:925b6746189dffbf50eb69",
+  measurementId: "G-05HW1X486H",
+};
+
+// Initialize Firebase
+// Note: We use a try-catch to prevent crashing if config is invalid
+let db;
+try {
+  const app = initializeApp(firebaseConfig);
+  db = getFirestore(app);
+} catch (error) {
+  console.error(
+    "Firebase initialization failed. Make sure you replaced the config keys!",
+    error
+  );
+}
 
 // --- CONTEXT DEFINITIONS ---
 const ProductContext = createContext();
@@ -60,7 +99,6 @@ const AuthProvider = ({ children }) => {
   }, []);
 
   const login = (username, password) => {
-    // Check for specific user OR the demo admin credentials mentioned in the UI hint
     if (
       (username === "bikrambhai" && password === "bikram@shop") ||
       (username === "admin" && password === "admin123")
@@ -90,113 +128,149 @@ const AuthProvider = ({ children }) => {
 const ProductProvider = ({ children }) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Initial Data Generation
-  const generateDummyData = () => {
+  // Fetch Products from Firestore
+  const fetchProducts = async () => {
+    if (!db) return; // Stop if firebase isn't configured
+    setLoading(true);
+    try {
+      const querySnapshot = await getDocs(collection(db, "products"));
+      const productsData = querySnapshot.docs.map((doc) => ({
+        id: doc.id, // Firestore creates string IDs
+        ...doc.data(),
+      }));
+      setProducts(productsData);
+      setError(null);
+    } catch (err) {
+      console.error("Error fetching products:", err);
+      setError("Failed to load products from database.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  // Generate Demo Data (Uploads to Firestore)
+  const uploadDemoData = async () => {
+    if (!db) return;
+    setLoading(true);
     const fashionImages = [
-      "https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=600&auto=format&fit=crop", // Saree
-      "https://images.pexels.com/photos/8330427/pexels-photo-8330427.jpeg", // Ethnic/Bridal
-      "https://images.unsplash.com/photo-1596783074918-c84cb06531ca?q=80&w=600&auto=format&fit=crop", // Kurti
-      "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600&auto=format&fit=crop", // Western
-      "https://images.pexels.com/photos/6311613/pexels-photo-6311613.jpeg", // Dress
-      "https://images.unsplash.com/photo-1566174053879-31528523f8ae?q=80&w=600&auto=format&fit=crop", // Gown
-      "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?q=80&w=600&auto=format&fit=crop", // Dress
-      "https://images.unsplash.com/photo-1539008835657-9e8e9680c956?q=80&w=600&auto=format&fit=crop", // Black Dress
-      "https://images.unsplash.com/photo-1610030468706-9a6dbad49b0a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTZ8fHNhcmVlfGVufDB8fDB8fHww", // Casual
-      "https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=600&auto=format&fit=crop", // Stylish
-      "https://images.unsplash.com/photo-1679006831648-7c9ea12e5807?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8c2FyZWV8ZW58MHx8MHx8fDA%3D", // Modern
-      "https://plus.unsplash.com/premium_photo-1682092039530-584ae1d9da7f?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8c2FyZWV8ZW58MHx8MHx8fDA%3D", // Saree/Traditional
+      "https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=600&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1605763240004-7e93b172d754?q=80&w=600&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1596783074918-c84cb06531ca?q=80&w=600&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1583391733956-6c78276477e2?q=80&w=600&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1566174053879-31528523f8ae?q=80&w=600&auto=format&fit=crop",
     ];
-
     const fashionNames = [
-      "Royal Banarasi Silk Saree",
-      "Bridal Lehenga Choli",
-      "Embroidered Kurti Set",
-      "Chic Floral Summer Dress",
-      "Elegant Black Evening Gown",
-      "Stylish Maxi Dress",
-      "Designer Party Wear",
-      "Classic Black Cocktail Dress",
-      "Casual Denim Jumpsuit",
-      "Trendy Fashion Top",
-      "Modern Western Outfit",
-      "Traditional Kanjivaram Saree",
+      "Royal Banarasi Saree",
+      "Bridal Lehenga",
+      "Kurti Set",
+      "Summer Dress",
+      "Evening Gown",
+      "Party Wear",
     ];
-
     const fashionCategories = [
       "Sarees",
       "Lehengas",
       "Kurtis",
       "Dresses",
       "Gowns",
-      "Dresses",
       "Party Wear",
-      "Dresses",
-      "Western",
-      "Tops",
-      "Western",
-      "Sarees",
     ];
 
-    return Array.from({ length: 12 }, (_, i) => ({
-      id: i + 1,
-      name: fashionNames[i] || `Premium Cloth ${i + 1}`,
-      price:
-        [
-          4500, 12500, 1850, 1200, 3200, 2100, 2800, 1500, 1950, 850, 2200,
-          5500,
-        ][i] || Math.floor(Math.random() * 2000) + 500,
-      image: fashionImages[i % fashionImages.length],
-      description:
-        "Elevate your style with this exquisite piece. Crafted with premium quality fabric to ensure comfort and elegance for every occasion. Perfect for the modern woman.",
-      category: fashionCategories[i] || "Fashion",
-    }));
-  };
-
-  useEffect(() => {
-    const stored = localStorage.getItem("ecommerce_products_v1");
-    if (stored) {
-      setProducts(JSON.parse(stored));
-    } else {
-      const initial = generateDummyData();
-      setProducts(initial);
-      localStorage.setItem("ecommerce_products_v1", JSON.stringify(initial));
+    try {
+      for (let i = 0; i < 6; i++) {
+        await addDoc(collection(db, "products"), {
+          name: fashionNames[i],
+          price: Math.floor(Math.random() * 2000) + 1000,
+          image: fashionImages[i],
+          description: "Premium quality authentic wear.",
+          category: fashionCategories[i],
+        });
+      }
+      await fetchProducts(); // Refresh list
+      alert("Demo data uploaded to database!");
+    } catch (err) {
+      console.error("Error uploading demo data:", err);
+      alert("Error uploading data. Check console.");
     }
     setLoading(false);
-  }, []);
+  };
 
-  useEffect(() => {
-    if (!loading) {
-      localStorage.setItem("ecommerce_products_v1", JSON.stringify(products));
+  const addProduct = async (product) => {
+    if (!db) return;
+    try {
+      // Ensure price is a number
+      const docRef = await addDoc(collection(db, "products"), {
+        ...product,
+        price: parseFloat(product.price),
+      });
+      // Update local state instantly for better UX
+      setProducts([
+        { ...product, id: docRef.id, price: parseFloat(product.price) },
+        ...products,
+      ]);
+      return true;
+    } catch (err) {
+      console.error("Error adding product:", err);
+      alert("Failed to add product.");
+      return false;
     }
-  }, [products, loading]);
-
-  const addProduct = (product) => {
-    const newProduct = {
-      ...product,
-      id: Date.now(),
-      price: parseFloat(product.price),
-    };
-    setProducts([newProduct, ...products]);
   };
 
-  const updateProduct = (id, updatedData) => {
-    setProducts(
-      products.map((p) =>
-        p.id === id
-          ? { ...p, ...updatedData, price: parseFloat(updatedData.price) }
-          : p
-      )
-    );
+  const updateProduct = async (id, updatedData) => {
+    if (!db) return;
+    try {
+      const productRef = doc(db, "products", id);
+      await updateDoc(productRef, {
+        ...updatedData,
+        price: parseFloat(updatedData.price),
+      });
+      setProducts(
+        products.map((p) =>
+          p.id === id
+            ? { ...p, ...updatedData, price: parseFloat(updatedData.price) }
+            : p
+        )
+      );
+    } catch (err) {
+      console.error("Error updating product:", err);
+      alert("Failed to update product.");
+    }
   };
 
-  const deleteProduct = (id) => {
-    setProducts(products.filter((p) => p.id !== id));
+  const deleteProduct = async (id) => {
+    if (!db) return;
+    if (
+      !window.confirm("Are you sure you want to delete this from the database?")
+    )
+      return;
+
+    try {
+      await deleteDoc(doc(db, "products", id));
+      setProducts(products.filter((p) => p.id !== id));
+    } catch (err) {
+      console.error("Error deleting product:", err);
+      alert("Failed to delete product.");
+    }
   };
 
   return (
     <ProductContext.Provider
-      value={{ products, loading, addProduct, updateProduct, deleteProduct }}
+      value={{
+        products,
+        loading,
+        error,
+        addProduct,
+        updateProduct,
+        deleteProduct,
+        uploadDemoData,
+      }}
     >
       {children}
     </ProductContext.Provider>
@@ -218,7 +292,7 @@ const Navbar = () => {
     <nav className="sticky top-0 z-50 w-full bg-white shadow-sm border-b border-slate-100">
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row justify-between items-center gap-4 md:gap-0">
         <div
-          className="flex items-center gap-2 text-2xl font-extrabold text-blue-600 cursor-pointer "
+          className="flex items-center gap-2 text-2xl font-extrabold text-blue-600 cursor-pointer"
           onClick={() => navigate("home")}
         >
           First
@@ -227,14 +301,13 @@ const Navbar = () => {
             alt="firstfasion"
             className="w-10 h-10 object-contain"
           />
-          <span className="w-35">Fashion</span>
+          <span className="w-auto">Fashion</span>
         </div>
 
-        {/* Marquee Section */}
-        <div className="flex items-center  text-sm md:text-base font-bold text-red-500 cursor-pointer overflow-hidden w-full   py-1 px-2 rounded-lg">
+        <div className="flex items-center gap-2 text-sm md:text-base font-bold text-red-500 cursor-pointer overflow-hidden w-full md:max-w-md bg-red-50 py-1 px-2 rounded-lg">
           <marquee>
-            ***Shop local, shine global. ***Your local connection to quality.
-            ***Near is dear, clear is cleaner. ***Small store, big trust .
+            ***Shop local, shine global. ***Real Database Connected. ***Live
+            Updates.
           </marquee>
         </div>
 
@@ -244,7 +317,7 @@ const Navbar = () => {
             className={`font-medium transition-colors ${
               currentPage === "home"
                 ? "text-blue-600"
-                : "text-slate-600 hover:text-blue-600 pl-2"
+                : "text-slate-600 hover:text-blue-600"
             }`}
           >
             Shop
@@ -293,7 +366,6 @@ const Navbar = () => {
   );
 };
 
-// ** HERO SLIDER **
 const HeroSlider = () => {
   const [current, setCurrent] = useState(0);
   const slides = [
@@ -333,7 +405,7 @@ const HeroSlider = () => {
     setCurrent(current === 0 ? slides.length - 1 : current - 1);
 
   return (
-    <div className="relative w-full h-[370px] md:h-[550px] overflow-hidden mb-10 bg-slate-900">
+    <div className="relative w-full h-[300px] md:h-[500px] overflow-hidden mb-10 bg-slate-900">
       {slides.map((slide, index) => (
         <div
           key={slide.id}
@@ -378,16 +450,16 @@ const HeroSlider = () => {
   );
 };
 
-// ** PRODUCT CARD **
 const ProductCard = ({ product, onOpenModal }) => {
   const [imgError, setImgError] = useState(false);
 
   const handleShare = (e) => {
     e.stopPropagation();
 
-    // Fallback share logic for iframe/embedded environments
+    // Safer URL construction to handle preview environments vs production
+    const baseUrl = window.location.href.split("?")[0];
+    const shareUrl = `${baseUrl}?product=${product.id}`;
     const shareText = `Check out ${product.name} - ₹${product.price} on First Fashion!`;
-    const shareUrl = window.location.href;
 
     if (navigator.share) {
       navigator
@@ -398,18 +470,15 @@ const ProductCard = ({ product, onOpenModal }) => {
         })
         .catch(console.error);
     } else {
-      // Create a temporary textarea to copy to clipboard
       const textArea = document.createElement("textarea");
       textArea.value = `${shareText}\n${shareUrl}`;
       document.body.appendChild(textArea);
       textArea.select();
       try {
         document.execCommand("copy");
-        alert(
-          "Product Info Copied! You can now paste it on Facebook or WhatsApp."
-        );
+        alert("Link Copied! Share this link with anyone.");
       } catch (err) {
-        console.error("Fallback: Oops, unable to copy", err);
+        console.error("Fallback copy failed", err);
       }
       document.body.removeChild(textArea);
     }
@@ -465,7 +534,6 @@ const ProductCard = ({ product, onOpenModal }) => {
   );
 };
 
-// ** PRODUCT MODAL **
 const ProductModal = ({ product, onClose }) => {
   if (!product) return null;
 
@@ -516,7 +584,6 @@ const ProductModal = ({ product, onClose }) => {
   );
 };
 
-// ** LOCATION SECTION **
 const LocationSection = () => {
   return (
     <div className="w-full bg-white py-16 md:py-24 border-t border-slate-200">
@@ -577,7 +644,6 @@ const LocationSection = () => {
   );
 };
 
-// ** FOOTER **
 const Footer = () => {
   return (
     <footer className="w-full bg-slate-900 text-slate-300 py-16">
@@ -653,7 +719,7 @@ const Footer = () => {
 // --- PAGES ---
 
 const Home = () => {
-  const { products, loading } = useContext(ProductContext);
+  const { products, loading, error } = useContext(ProductContext);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -670,7 +736,8 @@ const Home = () => {
       const params = new URLSearchParams(window.location.search);
       const productId = params.get("product");
       if (productId) {
-        const foundProduct = products.find((p) => p.id === parseInt(productId));
+        // Find product by string ID (Firestore uses string IDs)
+        const foundProduct = products.find((p) => p.id === productId);
         if (foundProduct) {
           setSelectedProduct(foundProduct);
         }
@@ -681,13 +748,41 @@ const Home = () => {
   // Update URL when opening/closing modal
   const handleOpenModal = (product) => {
     setSelectedProduct(product);
-    // Push new state with query param (simulated for SPA)
-    // In a real router, you would use useSearchParams or useNavigate
+    try {
+      const newUrl = `${window.location.pathname}?product=${product.id}`;
+      window.history.pushState({ path: newUrl }, "", newUrl);
+    } catch (e) {
+      // Ignore security errors in preview/sandbox
+      console.log("History pushState blocked in sandbox (harmless)");
+    }
   };
 
   const handleCloseModal = () => {
     setSelectedProduct(null);
+    try {
+      window.history.pushState(
+        { path: window.location.pathname },
+        "",
+        window.location.pathname
+      );
+    } catch (e) {
+      // Ignore security errors in preview/sandbox
+      console.log("History pushState blocked in sandbox (harmless)");
+    }
   };
+
+  // Handle browser back button
+  useEffect(() => {
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const productId = params.get("product");
+      if (!productId) {
+        setSelectedProduct(null);
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
 
   const filteredProducts = useMemo(() => {
     let result = products.filter(
@@ -702,8 +797,19 @@ const Home = () => {
 
   if (loading)
     return (
-      <div className="min-h-screen flex items-center justify-center text-slate-500 font-medium">
-        Loading catalog...
+      <div className="min-h-screen flex flex-col items-center justify-center text-slate-500 font-medium">
+        <Loader2 className="w-10 h-10 animate-spin mb-4 text-blue-600" />{" "}
+        Connecting to Database...
+      </div>
+    );
+
+  if (error)
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center text-red-500 font-medium">
+        <AlertCircle className="w-10 h-10 mb-4" /> {error}{" "}
+        <p className="text-sm text-slate-400 mt-2">
+          Check your Firebase Config or Internet Connection.
+        </p>
       </div>
     );
 
@@ -780,8 +886,14 @@ const Home = () => {
 };
 
 const Admin = () => {
-  const { products, addProduct, updateProduct, deleteProduct } =
-    useContext(ProductContext);
+  const {
+    products,
+    addProduct,
+    updateProduct,
+    deleteProduct,
+    uploadDemoData,
+    loading,
+  } = useContext(ProductContext);
   const [isEditing, setIsEditing] = useState(null);
   const [formData, setFormData] = useState({
     name: "",
@@ -798,18 +910,27 @@ const Admin = () => {
     setShowForm(false);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (isEditing) updateProduct(isEditing, formData);
-    else addProduct(formData);
-    resetForm();
+    let success = false;
+    if (isEditing) {
+      await updateProduct(isEditing, formData);
+      success = true;
+    } else {
+      success = await addProduct(formData);
+    }
+
+    if (success !== false) resetForm();
   };
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 800000) {
-        alert("Image is too large! Please select an image under 800KB.");
+      if (file.size > 500000) {
+        // Limit to 500KB for Firestore stability
+        alert(
+          "Image is too large! Please select an image under 500KB for the database."
+        );
         return;
       }
       const reader = new FileReader();
@@ -832,17 +953,31 @@ const Admin = () => {
         <div>
           <h2 className="text-3xl font-bold text-slate-900">Dashboard</h2>
           <p className="text-slate-500 mt-1">
-            Manage your inventory and pricing.
+            Manage your inventory and pricing (Synced with DB).
           </p>
         </div>
-        {!showForm && (
-          <button
-            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 shadow-md transition-all"
-            onClick={() => setShowForm(true)}
-          >
-            <Plus className="w-5 h-5" /> Add Product
-          </button>
-        )}
+        <div className="flex gap-3">
+          {/* Button to seed DB if empty */}
+          {products.length === 0 && (
+            <button
+              className="flex items-center gap-2 px-4 py-3 bg-purple-600 text-white font-semibold rounded-xl hover:bg-purple-700 shadow-md transition-all"
+              onClick={uploadDemoData}
+              disabled={loading}
+            >
+              <Database className="w-5 h-5" />{" "}
+              {loading ? "Uploading..." : "Load Demo Data"}
+            </button>
+          )}
+
+          {!showForm && (
+            <button
+              className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 shadow-md transition-all"
+              onClick={() => setShowForm(true)}
+            >
+              <Plus className="w-5 h-5" /> Add Product
+            </button>
+          )}
+        </div>
       </div>
 
       {showForm && (
@@ -936,15 +1071,20 @@ const Admin = () => {
                 )}
               </div>
               <p className="text-xs text-slate-400 mt-2">
-                Max 800KB. Upload directly from your device.
+                Max 500KB. Upload directly from your device.
               </p>
             </div>
             <div className="md:col-span-2 flex gap-4 mt-4">
               <button
                 type="submit"
+                disabled={loading}
                 className="px-8 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 shadow-md transition-all flex items-center gap-2"
               >
-                <Save className="w-5 h-5" />{" "}
+                {loading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <Save className="w-5 h-5" />
+                )}
                 {isEditing ? "Update Product" : "Save Product"}
               </button>
               <button
@@ -967,8 +1107,7 @@ const Admin = () => {
               Delete Product?
             </h3>
             <p className="text-slate-500 mb-6">
-              This action cannot be undone. Are you sure you want to remove this
-              item?
+              This will delete the item from the DATABASE permanently.
             </p>
             <div className="flex gap-4 justify-center">
               <button
@@ -1035,7 +1174,7 @@ const Admin = () => {
                       {product.name}
                     </div>
                     <div className="text-xs text-slate-400">
-                      ID: {product.id}
+                      ID: {product.id.substring(0, 6)}...
                     </div>
                   </td>
                   <td className="p-4">
@@ -1066,10 +1205,17 @@ const Admin = () => {
                   </td>
                 </tr>
               ))}
-              {products.length === 0 && (
+              {products.length === 0 && !loading && (
                 <tr>
                   <td colSpan="5" className="text-center p-12 text-slate-400">
-                    No products available. Add one to get started!
+                    Database Empty. Click "Load Demo Data" above.
+                  </td>
+                </tr>
+              )}
+              {loading && (
+                <tr>
+                  <td colSpan="5" className="text-center p-12 text-slate-400">
+                    Loading data...
                   </td>
                 </tr>
               )}
