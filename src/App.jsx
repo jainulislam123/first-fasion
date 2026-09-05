@@ -66,7 +66,7 @@ try {
 } catch (error) {
   console.error(
     "Firebase initialization failed. Make sure you replaced the config keys!",
-    error
+    error,
   );
 }
 
@@ -235,8 +235,8 @@ const ProductProvider = ({ children }) => {
         products.map((p) =>
           p.id === id
             ? { ...p, ...updatedData, price: parseFloat(updatedData.price) }
-            : p
-        )
+            : p,
+        ),
       );
     } catch (err) {
       console.error("Error updating product:", err);
@@ -292,22 +292,20 @@ const Navbar = () => {
     <nav className="sticky top-0 z-50 w-full bg-white shadow-sm border-b border-slate-100">
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row justify-between items-center gap-4 md:gap-0">
         <div
-          className="flex items-center gap-2 text-2xl font-extrabold text-blue-600 cursor-pointer"
+          className="flex items-center gap-2 text-xl font-extrabold text-blue-600 cursor-pointer"
           onClick={() => navigate("home")}
         >
-          First
           <img
-            src="https://i.postimg.cc/cL1VRZCF/firstfaion.png"
-            alt="firstfasion"
-            className="w-10 h-10 object-contain"
+            src="https://i.postimg.cc/J4C1zznd/remove-photos-removed-background.png"
+            alt="RRfasion"
+            className="w-20 h-15 object-contain"
           />
-          <span className="w-auto">Fashion</span>
+          <span> RR Fashion</span>
         </div>
 
-        <div className="flex items-center gap-2 text-sm md:text-base font-bold text-red-500 cursor-pointer overflow-hidden w-full md:max-w-md bg-red-50 py-1 px-2 rounded-lg">
+        <div className="flex items-center gap-2 text-sm md:text-base font-bold text-white-500 cursor-pointer overflow-hidden w-full md:max-w-md bg-white py-1 px-2 rounded-lg">
           <marquee>
-            ***Shop local, shine global. ***Real Database Connected. ***Live
-            Updates.
+            ***Shop local, shine global. Call For Book - +91 90640 53338
           </marquee>
         </div>
 
@@ -459,7 +457,7 @@ const ProductCard = ({ product, onOpenModal }) => {
     // Safer URL construction to handle preview environments vs production
     const baseUrl = window.location.href.split("?")[0];
     const shareUrl = `${baseUrl}?product=${product.id}`;
-    const shareText = `Check out ${product.name} - ₹${product.price} on First Fashion!`;
+    const shareText = `Check out ${product.name} - ₹${product.price} on RR Fashion!`;
 
     if (navigator.share) {
       navigator
@@ -617,7 +615,7 @@ const LocationSection = () => {
             </div>
             <div>
               <h4 className="font-bold text-slate-900">Address</h4>
-              <p className="text-slate-500">First Fashion Street, Malda</p>
+              <p className="text-slate-500">RR Fashion Street, Malda</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -648,14 +646,30 @@ const Footer = () => {
   return (
     <footer className="w-full bg-slate-900 text-slate-300 py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10 mb-12">
           <div>
             <div className="flex items-center gap-2 text-2xl font-bold text-white mb-4">
-              <ShoppingBag className="w-6 h-6" /> First Fashion
+              <img
+                className="w-15"
+                src="https://i.postimg.cc/J4C1zznd/remove-photos-removed-background.png"
+                alt=""
+                srcset=""
+              />{" "}
+              RR Fashion
             </div>
             <p className="text-slate-400 leading-relaxed">
               Premium quality products for your modern lifestyle.
             </p>
+            <div className="flex gap-2 mt-4">
+              {[Facebook, Twitter, Instagram].map((Icon, idx) => (
+                <div
+                  key={idx}
+                  className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center cursor-pointer hover:bg-blue-600 hover:-translate-y-1 transition-all text-white"
+                >
+                  <Icon className="w-5 h-5" />
+                </div>
+              ))}
+            </div>
           </div>
           <div>
             <h3 className="text-white font-bold text-lg mb-4">Quick Links</h3>
@@ -694,22 +708,39 @@ const Footer = () => {
               ))}
             </ul>
           </div>
+
           <div>
-            <h3 className="text-white font-bold text-lg mb-4">Follow Us</h3>
-            <div className="flex gap-4">
-              {[Facebook, Twitter, Instagram].map((Icon, idx) => (
-                <div
-                  key={idx}
-                  className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center cursor-pointer hover:bg-blue-600 hover:-translate-y-1 transition-all text-white"
-                >
-                  <Icon className="w-5 h-5" />
-                </div>
-              ))}
+            <img
+              className="rounded-lg mb-4 w-full h-40 object-cover"
+              src="https://i.postimg.cc/Hn2PmzjW/bikram.jpg"
+              alt=""
+            />
+            <div>
+              {/* <h3 className="text-white font-bold text-lg mb-4">Follow Us</h3> */}
+              <div className="flex gap-4">
+                {[Facebook, Twitter, Instagram, Phone].map((Icon, idx) => (
+                  <div
+                    key={idx}
+                    className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center cursor-pointer hover:bg-blue-600 hover:-translate-y-1 transition-all text-white"
+                  >
+                    <Icon className="w-5 h-5" />
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
         <div className="border-t border-slate-800 pt-8 text-center text-sm text-slate-500">
-          &copy; {new Date().getFullYear()} First Fashion. All rights reserved.
+          &copy; {new Date().getFullYear()} RR Fashion. All rights reserved.
+          made with ❤️ by{" "}
+          <a
+            href="http://jainulislam.netlify.app"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Jainul Islam
+          </a>
+          .
         </div>
       </div>
     </footer>
@@ -763,7 +794,7 @@ const Home = () => {
       window.history.pushState(
         { path: window.location.pathname },
         "",
-        window.location.pathname
+        window.location.pathname,
       );
     } catch (e) {
       // Ignore security errors in preview/sandbox
@@ -788,7 +819,7 @@ const Home = () => {
     let result = products.filter(
       (p) =>
         p.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        (selectedCategory === "All" || p.category === selectedCategory)
+        (selectedCategory === "All" || p.category === selectedCategory),
     );
     if (sortOrder === "low") result.sort((a, b) => a.price - b.price);
     else if (sortOrder === "high") result.sort((a, b) => b.price - a.price);
@@ -929,7 +960,7 @@ const Admin = () => {
       if (file.size > 500000) {
         // Limit to 500KB for Firestore stability
         alert(
-          "Image is too large! Please select an image under 500KB for the database."
+          "Image is too large! Please select an image under 500KB for the database.",
         );
         return;
       }
@@ -1333,8 +1364,8 @@ const Login = () => {
               </button>
 
               <div className="mt-6 text-center text-sm text-slate-400">
-                Use <strong className="text-slate-600">admin</strong> /{" "}
-                <strong className="text-slate-600">admin123</strong> to test
+                {/* Use <strong className="text-slate-600">admin</strong> /{" "}
+                <strong className="text-slate-600">admin123</strong> to test */}
               </div>
             </form>
           </>
