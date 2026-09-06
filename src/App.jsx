@@ -715,10 +715,7 @@ const Footer = () => {
               src="https://i.postimg.cc/Hn2PmzjW/bikram.jpg"
               alt=""
             />
-            <span className="mb-4 font-black p-0">
-              {" "}
-              Mr. Bikaram Sarkar(M.D)
-            </span>
+            <span className="mb-4 font-black p-0"> Mr. Bikram Sarkar(M.D)</span>
             <div>
               {/* <h3 className="text-white font-bold text-lg mb-4">Follow Us</h3> */}
               <div className="flex gap-4">
