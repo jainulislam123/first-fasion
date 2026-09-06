@@ -370,14 +370,14 @@ const HeroSlider = () => {
     {
       id: 1,
       image:
-        "https://plus.unsplash.com/premium_photo-1664202526559-e21e9c0fb46a?q=80&w=1170&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       title: "New Season Arrivals",
       subtitle: "Check out all the trends",
     },
     {
       id: 2,
       image:
-        "https://images.pexels.com/photos/5490975/pexels-photo-5490975.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1",
+        "https://plus.unsplash.com/premium_photo-1770534237347-7f2486b779d1?q=80&w=1442&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       title: "Modern Styles",
       subtitle: "Elevate your wardrobe",
     },
@@ -715,6 +715,10 @@ const Footer = () => {
               src="https://i.postimg.cc/Hn2PmzjW/bikram.jpg"
               alt=""
             />
+            <span className="mb-4 font-black p-0">
+              {" "}
+              Mr. Bikaram Sarkar(M.D)
+            </span>
             <div>
               {/* <h3 className="text-white font-bold text-lg mb-4">Follow Us</h3> */}
               <div className="flex gap-4">
@@ -1273,7 +1277,7 @@ const Login = () => {
     if (login(username, password)) {
       navigate("admin");
     } else {
-      setError("Invalid credentials. Hint: admin / admin123");
+      setError("Invalid credentials. Hint: user / password");
     }
   };
 
